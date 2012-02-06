@@ -74,12 +74,12 @@ class Worker(object):
 
     def prune_dead_workers(self):
         all_workers = Worker.all(self.resq)
-        known_workers = self.worker_pids()
+        running_pids = self.all_pids()
         for worker in all_workers:
             host, pid, queues = worker.id.split(':')
             if host != self.hostname:
                 continue
-            if pid in known_workers:
+            if pid in running_pids:
                 continue
             logger.warning("pruning dead worker: %s" % worker)
             worker.unregister_worker()
@@ -275,12 +275,11 @@ class Worker(object):
             return 'working'
         return 'idle'
 
-    def worker_pids(self):
+    def all_pids(self):
         """Returns an array of all pids (as strings) of the workers on
         this machine.  Used when pruning dead workers."""
-        return map(lambda l: l.strip().split(' ')[0],
-                   commands.getoutput("ps -A -o pid,command | \
-                                       grep pyres_worker").split("\n"))
+        return map(lambda l: l.strip(),
+                   commands.getoutput("ps -A -o pid").split("\n"))
 
     @classmethod
     def run(cls, queues, server="localhost:6379", interval=None):
