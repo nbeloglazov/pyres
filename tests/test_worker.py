@@ -164,9 +164,9 @@ class WorkerTests(PyResTests):
     def test_prune_dead_workers(self):
         worker = Worker(['basic']) # we haven't registered this worker, so the assertion below holds
         assert self.redis.scard('resque:workers') == 0
-        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'1','basic'))
-        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'2','basic'))
-        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'3','basic'))
+        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'-1','basic'))
+        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'-2','basic'))
+        self.redis.sadd('resque:workers',"%s:%s:%s" % (os.uname()[1],'-3','basic'))
         assert self.redis.scard('resque:workers') == 3
         worker.prune_dead_workers()
         assert self.redis.scard('resque:workers') == 0
