@@ -74,6 +74,9 @@ def pyres_web():
     parser.add_option("--dsn",
                       dest="dsn",
                       help="Redis server to display")
+    parser.add_option("--auth",
+                      dest="auth",
+                      help="Redis user:pass")
     parser.add_option("--server",
                       dest="server",
                       help="Server for itty to run under.",
@@ -82,7 +85,14 @@ def pyres_web():
 
     if options.dsn:
         from pyres import ResQ
-        resweb_server.HOST = ResQ(options.dsn)
+        if options.auth is not None:
+            from redis import Redis
+            rhost, rport = options.dsn.split(':')
+            ruser, rpass = options.auth.split(':')
+            redis = Redis(host=rhost, port=int(rport), db=ruser, password=rpass)
+            resweb_server.HOST = ResQ(redis)
+        else:
+            resweb_server.HOST = ResQ(options.dsn)
     run_itty(host=options.host, port=options.port, server=options.server)
 
 
@@ -96,6 +106,7 @@ def pyres_worker():
     parser.add_option('-l', '--log-level', dest='log_level', default='info', help='log level.  Valid values are "debug", "info", "warning", "error", "critical", in decreasing order of verbosity. Defaults to "info" if parameter not specified.')
     parser.add_option('-f', dest='logfile', help='If present, a logfile will be used.  "stderr", "stdout", and "syslog" are all special values.')
     parser.add_option('-p', dest='pidfile', help='If present, a pidfile will be used.')
+    parser.add_option("-t", '--timeout', dest='timeout', default=None, help='the timeout in seconds for this worker')
     (options,args) = parser.parse_args()
 
     if len(args) != 1:
@@ -110,6 +121,8 @@ def pyres_worker():
     if interval is not None:
         interval = int(interval)
 
+    timeout = options.timeout is None and options.timeout or int(options.timeout)
+
     queues = args[0].split(',')
     server = '%s:%s' % (options.host,options.port)
-    Worker.run(queues, server, interval)
+    Worker.run(queues, server, interval, timeout=timeout)
