@@ -1,3 +1,10 @@
+##1.3 (2012-06-01)
+* remove resweb from pyres
+* resweb is now available at http://github.com/Pyres/resweb or on pypi
+
+##1.2
+* release with changes from pull requests
+
 ##1.1 (2011-06-16)
 * api change based on redis-py
 * setproctitle requirements fix
